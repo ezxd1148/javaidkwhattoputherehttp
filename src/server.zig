@@ -28,7 +28,7 @@ pub fn main(init: std.process.Init) !void {
         var serverInit = std.http.Server.init(&reader.interface, &writer.interface);
         var request = try serverInit.receiveHead();
 
-        if (request.head.method == .POST) {
+        if (request.head.method == .POST and (std.mem.eql(u8, request.head.target, "/send"))) {
             const n_reader = request.readerExpectNone(&buf);
             const n = try n_reader.readSliceShort(&buf);
             std.debug.print("{s}\n", .{buf[0..n]});

@@ -5,7 +5,7 @@ pub fn main(init: std.process.Init) !void {
     const io = init.io;
 
     const host: []const u8 = "http://0.0.0.0:8080/messages";
-    const hostPost: []const u8 = "http://0.0.0.0:8080/send";
+    const hostPost: []const u8 = "http://0.0.0.0:8080/sends"; //intentional typo
     const hostName: std.Uri = try std.Uri.parse(host);
     const hostNamePost: std.Uri = try std.Uri.parse(hostPost);
 
