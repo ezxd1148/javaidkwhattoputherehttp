@@ -8,14 +8,17 @@ const stdin = std.Io.File.stdin();
 var io: std.Io = undefined;
 var allocator: std.mem.Allocator = undefined;
 
+const host: []const u8 = "http://0.0.0.0:8080/send";
+var hostName: std.Uri = undefined;
+
 pub fn main(init: std.process.Init) !void {
     allocator = init.gpa;
     io = init.io;
 
-    try printInput("Are you the server or the client?");
+    try printInput("Are you the server or the client?\n");
 
-    try printInput("1. Client");
-    try printInput("2. Server");
+    try printInput("1. Client\n");
+    try printInput("2. Server\n");
 
     const input = try readUserInput();
     defer allocator.free(input);
@@ -28,7 +31,36 @@ pub fn main(init: std.process.Init) !void {
 }
 
 pub fn userClient() !void {
-    try printInput("Logged in as Client");
+    hostName = try std.Uri.parse(host);
+    var redirect_buf: [1024]u8 = undefined;
+    try printInput("Logged in as Client\n");
+
+    try printInput("Initializing Client...\n");
+
+    // initializing client heerer
+
+    var clientInit: std.http.Client = .{
+        .allocator = allocator,
+        .io = io,
+    };
+    defer clientInit.deinit();
+
+    var request = try clientInit.request(.POST, hostName, .{});
+    defer request.deinit();
+
+    while (true) {
+        try printInput("\n> ");
+        const userInput = try readUserInput();
+        defer allocator.free(userInput);
+        if (std.mem.eql(u8, userInput, "q")) {
+            break;
+        }
+
+        try client.sendMessage(&clientInit, hostName, userInput, allocator);
+
+        const response = try request.receiveHead(&redirect_buf);
+        std.debug.print("{d}\n", .{@backingInt(response.head.status)});
+    }
 }
 
 pub fn userServer() !void {
@@ -51,6 +83,5 @@ pub fn printInput(input: []const u8) !void {
     const out = &writer.interface;
 
     _ = try out.writeAll(input);
-    _ = try out.writeByte('\n'); // newline
     try out.flush();
 }
