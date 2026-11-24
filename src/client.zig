@@ -4,8 +4,10 @@ pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
 
-    const host: []const u8 = "http://0.0.0.0:8080";
+    const host: []const u8 = "http://0.0.0.0:8080/messages";
+    const hostPost: []const u8 = "http://0.0.0.0:8080/send";
     const hostName: std.Uri = try std.Uri.parse(host);
+    const hostNamePost: std.Uri = try std.Uri.parse(hostPost);
 
     const redirectBuffer: []u8 = try allocator.alloc(u8, 1024);
     const transferBuffer: []u8 = try allocator.alloc(u8, 1024);
@@ -24,8 +26,12 @@ pub fn main(init: std.process.Init) !void {
     var request = try client.request(.GET, hostName, .{});
     defer request.deinit();
 
+    var requestPost = try client.request(.POST, hostNamePost, .{}); // /send
+    defer requestPost.deinit();
+
     try request.sendBodiless();
-    try sendMessage(&request, "Test from client\n", allocator);
+
+    try sendMessage(&requestPost, "Hello\n", allocator);
 
     var response = try request.receiveHead(redirectBuffer);
 

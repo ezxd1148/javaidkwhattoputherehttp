@@ -25,11 +25,15 @@ pub fn main(init: std.process.Init) !void {
         var reader = stream.reader(io, readbuf);
         var writer = stream.writer(io, writebuf);
 
-        const n = try writer.interface.write(&buf);
-        std.debug.print("{s}\n", .{buf[0..n]});
-
         var serverInit = std.http.Server.init(&reader.interface, &writer.interface);
         var request = try serverInit.receiveHead();
+
+        if (request.head.method == .POST) {
+            const n_reader = request.readerExpectNone(&buf);
+            const n = try n_reader.readSliceShort(&buf);
+            std.debug.print("{s}\n", .{buf[0..n]});
+        }
+
         _ = try request.respond("Hello\n", .{ .status = .ok });
     }
 }
