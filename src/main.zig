@@ -32,7 +32,6 @@ pub fn main(init: std.process.Init) !void {
 
 pub fn userClient() !void {
     hostName = try std.Uri.parse(host);
-    var redirect_buf: [1024]u8 = undefined;
     try printInput("Logged in as Client\n");
 
     try printInput("Initializing Client...\n");
@@ -45,9 +44,6 @@ pub fn userClient() !void {
     };
     defer clientInit.deinit();
 
-    var request = try clientInit.request(.POST, hostName, .{});
-    defer request.deinit();
-
     while (true) {
         try printInput("\n> ");
         const userInput = try readUserInput();
@@ -57,9 +53,6 @@ pub fn userClient() !void {
         }
 
         try client.sendMessage(&clientInit, hostName, userInput, allocator);
-
-        const response = try request.receiveHead(&redirect_buf);
-        std.debug.print("{d}\n", .{@backingInt(response.head.status)});
     }
 }
 
