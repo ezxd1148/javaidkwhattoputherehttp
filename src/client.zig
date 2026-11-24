@@ -25,14 +25,16 @@ pub fn main(init: std.process.Init) !void {
     defer request.deinit();
 
     try request.sendBodiless();
+    try sendMessage(&request, "Test from client\n", allocator);
 
     var response = try request.receiveHead(redirectBuffer);
 
     const r_reader = response.reader(transferBuffer);
-    std.debug.print("Status: {d}\n", .{@backingInt(response.head.status)}); // Backingint is for enum
+    std.debug.print("Status: {d}\n", .{@backingInt(response.head.status)}); // Backingint is for enum becuz response.head.status is a bunch of enums
 
     var len: usize = 0;
     while (true) {
+        // spoiler, this loop is really not idiomatic
         if (buf.len - len < 1024) {
             buf = try allocator.realloc(buf, buf.len + 1024);
         }
@@ -44,4 +46,13 @@ pub fn main(init: std.process.Init) !void {
 
         len += bytes_read;
     }
+}
+
+pub fn sendMessage(request: *std.http.Client.Request, message: []const u8, allocator: std.mem.Allocator) !void {
+    var buf: []u8 = undefined;
+
+    buf = try allocator.dupe(u8, message);
+    defer allocator.free(buf);
+
+    try request.sendBodyComplete(buf);
 }
