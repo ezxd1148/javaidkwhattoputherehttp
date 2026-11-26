@@ -58,6 +58,8 @@ pub fn userClient() !void {
 
 pub fn userServer() !void {
     try printInput("Logged in as Server");
+
+    try server.saveFile("Hello", io, allocator);
 }
 
 pub fn readUserInput() ![]u8 {
